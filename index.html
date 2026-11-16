@@ -327,6 +327,85 @@ con su nombre 💗</textarea></div>
       }
     });
   }
+  
+function dibujarLazoMorado(svg) {
+  const lazo = group(svg, {
+    id: 'lazoMorado',
+    transform: 'translate(220 427)'
+  });
+
+  // Cinta que rodea los tallos
+  path(lazo,
+    'M -23 -9 Q 0 -15 23 -9 L 20 11 Q 0 17 -20 11 Z',
+    '#7440ae', '#4c247c', 1.5
+  );
+
+  // Extremos colgantes
+  path(lazo,
+    'M -5 7 C -17 25 -34 43 -43 70 L -25 64 L -13 77 Q -5 40 6 10 Z',
+    '#a36ce2', '#66349c', 1.5
+  );
+
+  path(lazo,
+    'M 5 7 C 17 25 35 43 43 70 L 25 64 L 13 77 Q 5 40 -6 10 Z',
+    '#8b50cb', '#592b91', 1.5
+  );
+
+  // Bucle izquierdo
+  path(lazo,
+    'M 0 0 C -23 -37 -65 -35 -60 -7 C -56 14 -24 13 0 0 Z',
+    '#a875ed', '#65349b', 2
+  );
+
+  // Bucle derecho
+  path(lazo,
+    'M 0 0 C 23 -37 65 -35 60 -7 C 56 14 24 13 0 0 Z',
+    '#9860db', '#65349b', 2
+  );
+
+  // Pliegues de la tela
+  path(lazo,
+    'M -5 -2 Q -34 -19 -53 -11',
+    'none', '#d8b7ff', 2
+  );
+
+  path(lazo,
+    'M 5 -2 Q 34 -19 53 -11',
+    'none', '#cda3ff', 2
+  );
+
+  // Nudo central
+  ellipse(lazo, 0, 0, 12, 10, '#7137ae');
+  ellipse(lazo, -3, -3, 5, 3, '#c69bf5', -25);
+
+  return lazo;
+}
+  
+function dibujarNombreRamo(svg) {
+  const nombre = entries.join('').trim();
+  if (!nombre) return;
+
+  const texto = node('text', {
+    id: 'nombreRamoSVG',
+    x: 220,
+    y: 485,
+    'text-anchor': 'middle',
+    'font-family': 'Georgia, Times New Roman, serif',
+    'font-size': nombre.length > 12 ? 17 : 23,
+    'font-style': 'italic',
+    'font-weight': 'bold',
+    'letter-spacing': '2',
+    fill: '#e3c4ff',
+    stroke: '#070809',
+    'stroke-width': '3',
+    'paint-order': 'stroke',
+    opacity: '1'
+  }, svg);
+
+  texto.textContent = nombre;
+}
+
+
   function render(animateIndex=-1){
     const svg=$('bouquet');svg.replaceChildren();createDefs(svg);
     const stemLayer=group(svg),leafLayer=group(svg),flowerLayer=group(svg);
@@ -351,6 +430,16 @@ con su nombre 💗</textarea></div>
         const x=220+Math.cos(a)*rad, y=414+Math.sin(a)*34+(rnd(k+233)-.5)*18;
         leaf(leafLayer,x,y,(k%2?-49:49)+(rnd(k+55)-.5)*28,15+rnd(k+19)*16,k%2?-1:1);
       }
+    }
+    // Mostrar lazo y nombre solamente al terminar
+    // el ramo en modo TikTok.
+    if (
+      entries.length &&
+      document.body.classList.contains('cinema') &&
+      !playing
+    ) {
+      dibujarLazoMorado(svg);
+      dibujarNombreRamo(svg);
     }
     const word=entries.join('');const count=blooms.length;
     $('stageLabel').innerHTML=word?`<strong>${word.replaceAll('&','&amp;').replaceAll('<','&lt;')}</strong> · ${count} flores`:'<strong>Tu ramo</strong> · vacío';
@@ -409,7 +498,29 @@ con su nombre 💗</textarea></div>
       entries.push(letters[i]);render(i);
       await sleep(680);
     }
-    if(token===replayToken)playing=false;
+    if (token === replayToken) {
+      playing = false;
+    
+      if (cinema) {
+        dibujarLazoMorado($('bouquet'));
+        dibujarNombreRamo($('bouquet'));
+    
+        const lazo = $('lazoMorado');
+        const nombre = $('nombreRamoSVG');
+    
+        [lazo, nombre].forEach((elemento, i) => {
+          if (!elemento) return;
+    
+          elemento.style.opacity = '0';
+          elemento.style.transition =
+            'opacity 1s ease, transform 1s ease';
+    
+          setTimeout(() => {
+            elemento.style.opacity = '1';
+          }, 200 + i * 450);
+        });
+      }
+    }
   }
   function stopCinema(){document.body.classList.remove('cinema');$('bouquet').setAttribute('preserveAspectRatio','xMidYMax slice');stopReplay();render();}
   function openSheet(){if(document.body.classList.contains('cinema'))stopCinema();$('phrase').value=customText;$('wordInput').value=entries.join('');$('density').value=density;$('densityDisplay').textContent=`${density-2}–${density+2}`;updateSwatches();$('overlay').classList.add('show');}
@@ -437,7 +548,17 @@ con su nombre 💗</textarea></div>
     try{
       const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;const ctx=canvas.getContext('2d');ctx.fillStyle='#070809';ctx.fillRect(0,0,1080,1920);
       ctx.fillStyle='#faf6f7';drawLines(ctx,customText,75,210,925,76);
-      const source=$('bouquet').cloneNode(true);source.setAttribute('xmlns',NS);source.setAttribute('width','440');source.setAttribute('height','500');
+      const source=$('bouquet').cloneNode(true);
+      if (entries.length) {
+        if (!source.querySelector('#lazoMorado')) {
+          dibujarLazoMorado(source);
+        }
+      
+        if (!source.querySelector('#nombreRamoSVG')) {
+          dibujarNombreRamo(source);
+        }
+      }
+      source.setAttribute('xmlns',NS);source.setAttribute('width','440');source.setAttribute('height','500');
       source.setAttribute('viewBox','0 0 440 500');source.setAttribute('preserveAspectRatio','xMidYMid meet');
       // SVG class animations are not needed in a static exported image.
       source.querySelectorAll('.flower-arrive,.stem-grow').forEach(el=>el.removeAttribute('class'));
