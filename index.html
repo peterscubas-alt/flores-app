@@ -28,7 +28,7 @@
   .stage { flex:1 1 auto; min-height:275px; position:relative; overflow:hidden; background:radial-gradient(ellipse at 50% 69%, #101411 0%, #090b0a 38%, #070809 77%); border-radius:17px; }
   .stage:before { content:""; position:absolute; inset:0; pointer-events:none; z-index:2; border-radius:inherit; box-shadow:inset 0 -18px 45px rgba(7,8,9,.2); }
   .bouquet-svg { display:block; width:100%; height:100%; overflow:visible; }
-  .caption { position:absolute; z-index:3; top:5.2%; left:5.6%; right:5%; font-size:clamp(16px, 4.3vw, 23px); font-weight:740; line-height:1.32; white-space:pre-line; letter-spacing:-.45px; text-shadow:0 1px 4px #060606; pointer-events:none; }
+  .caption { position:absolute; z-index:3; top:2%; left:5.6%; right:5%; font-size:clamp(16px, 4.3vw, 23px); font-weight:740; line-height:1.32; white-space:pre-line; letter-spacing:-.45px; text-shadow:0 1px 4px #060606; pointer-events:none; }
   .stage-empty { position:absolute; z-index:2; bottom:23%; left:0; right:0; text-align:center; opacity:.55; font-size:12px; pointer-events:none; }
   .empty-hint svg { width:30px; height:30px; display:block; margin:0 auto 8px; }
   .stage-label { position:absolute; z-index:3; bottom:11px; left:14px; font-size:10px; letter-spacing:1.3px; text-transform:uppercase; color:#aaa4a5; background:rgba(12,13,14,.67); backdrop-filter:blur(8px); border-radius:99px; padding:6px 10px; pointer-events:none; }
@@ -328,82 +328,113 @@ con su nombre 💗</textarea></div>
     });
   }
   
+
 function dibujarLazoMorado(svg) {
   const lazo = group(svg, {
     id: 'lazoMorado',
     transform: 'translate(220 427)'
   });
 
-  // Cinta que rodea los tallos
+  // Cinta blanca de papel alrededor de los tallos
   path(lazo,
     'M -23 -9 Q 0 -15 23 -9 L 20 11 Q 0 17 -20 11 Z',
-    '#7440ae', '#4c247c', 1.5
+    '#f8f7f2', '#d2d0c9', 1.5
   );
 
-  // Extremos colgantes
+  // Tira izquierda de papel
   path(lazo,
     'M -5 7 C -17 25 -34 43 -43 70 L -25 64 L -13 77 Q -5 40 6 10 Z',
-    '#a36ce2', '#66349c', 1.5
+    '#ffffff', '#d4d1cb', 1.5
   );
 
+  // Tira derecha de papel
   path(lazo,
     'M 5 7 C 17 25 35 43 43 70 L 25 64 L 13 77 Q 5 40 -6 10 Z',
-    '#8b50cb', '#592b91', 1.5
+    '#eae8e2', '#c9c6bf', 1.5
   );
 
-  // Bucle izquierdo
+  // Bucle izquierdo con apariencia de papel doblado
   path(lazo,
     'M 0 0 C -23 -37 -65 -35 -60 -7 C -56 14 -24 13 0 0 Z',
-    '#a875ed', '#65349b', 2
+    '#ffffff', '#d1cec8', 2
   );
 
   // Bucle derecho
   path(lazo,
     'M 0 0 C 23 -37 65 -35 60 -7 C 56 14 24 13 0 0 Z',
-    '#9860db', '#65349b', 2
+    '#f1efe9', '#cbc8c1', 2
   );
 
-  // Pliegues de la tela
+  // Pliegues del papel
   path(lazo,
     'M -5 -2 Q -34 -19 -53 -11',
-    'none', '#d8b7ff', 2
+    'none', '#d7d5d0', 2
   );
 
   path(lazo,
     'M 5 -2 Q 34 -19 53 -11',
-    'none', '#cda3ff', 2
+    'none', '#d0cdc6', 2
   );
 
   // Nudo central
-  ellipse(lazo, 0, 0, 12, 10, '#7137ae');
-  ellipse(lazo, -3, -3, 5, 3, '#c69bf5', -25);
+  ellipse(lazo, 0, 0, 12, 10, '#f9f8f4',
+          0, '#d0cdc6', 1.5);
+
+  ellipse(lazo, -3, -3, 5, 3, '#ffffff', -25);
 
   return lazo;
 }
+
   
+
 function dibujarNombreRamo(svg) {
   const nombre = entries.join('').trim();
   if (!nombre) return;
 
+  const contenedor = group(svg, {
+    id: 'nombreRamoSVG'
+  });
+
+  const x = 220;
+  const y = 118;
+
+  const fontSize =
+    nombre.length > 12 ? 17 :
+    nombre.length > 8 ? 21 : 27;
+
+  const ancho = Math.min(
+    390,
+    Math.max(115, nombre.length * fontSize * 0.72 + 46)
+  );
+
+  // Etiqueta blanca de papel
+  node('rect', {
+    x: x - ancho / 2,
+    y: y - 30,
+    width: ancho,
+    height: 48,
+    rx: 5,
+    fill: '#fffdf7',
+    stroke: '#dedbd3',
+    'stroke-width': 1.3
+  }, contenedor);
+
+  // Nombre negro centrado
   const texto = node('text', {
-    id: 'nombreRamoSVG',
-    x: 220,
-    y: 485,
+    x: x,
+    y: y + 3,
     'text-anchor': 'middle',
     'font-family': 'Georgia, Times New Roman, serif',
-    'font-size': nombre.length > 12 ? 17 : 23,
+    'font-size': fontSize,
     'font-style': 'italic',
     'font-weight': 'bold',
-    'letter-spacing': '2',
-    fill: '#e3c4ff',
-    stroke: '#070809',
-    'stroke-width': '3',
-    'paint-order': 'stroke',
-    opacity: '1'
-  }, svg);
+    'letter-spacing': '1.5',
+    fill: '#111111'
+  }, contenedor);
 
   texto.textContent = nombre;
 }
+
 
 
   function render(animateIndex=-1){
@@ -566,7 +597,6 @@ function dibujarNombreRamo(svg) {
       const blob=new Blob([serial],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);
       const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});
       ctx.drawImage(img,0,445,1080,1228);URL.revokeObjectURL(url);
-      ctx.fillStyle='#d9c4cd';ctx.font='30px -apple-system, Arial, sans-serif';ctx.textAlign='center';ctx.fillText((entries.join('')||'TU RAMO')+'  ♡',540,1748);ctx.textAlign='start';
       const data=canvas.toDataURL('image/png');const link=document.createElement('a');link.href=data;link.download=`ramo-${entries.join('').toLowerCase()||'flores'}.png`;document.body.append(link);link.click();link.remove();toast('Imagen PNG guardada 💐');
     }catch(err){console.error(err);toast('No se pudo exportar. Usa captura de pantalla.');}
   }
